@@ -1,6 +1,8 @@
 CREATE DATABASE proj2_db
 	ON (NAME = proj2_mdf,
-	FILENAME = 'C:\AUA\Business Intelligence\Group Project 2\proj2_mdf.mdf');
+	FILENAME = 'C:\Users\Nitro\Desktop\BI group project\BI_final_project\proj2_mdf.mdf');
+
+use proj2_db
 
 DROP TABLE IF EXISTS EmployeeTerritories;
 DROP TABLE IF EXISTS Territories;
@@ -14,13 +16,13 @@ DROP TABLE IF EXISTS Employees;
 DROP TABLE IF EXISTS Customers;
 DROP TABLE IF EXISTS Shippers;
 
-DROP TABLE IF EXISTS Region;
+DROP TABLE IF EXISTS dbo.Region;
 CREATE TABLE Region (
 	RegionID int  not null PRIMARY KEY,
 	RegionDescription nchar(50) not null
 );
 
-DROP TABLE IF EXISTS Territories;
+DROP TABLE IF EXISTS dbo.Territories;
 create table Territories(
 
 
@@ -54,7 +56,7 @@ create table Categories(
 
 CategoryID int not null PRIMARY KEY,
 CategoryName nvarchar(15) not null,
-Description_ varchar(MAX) null,
+Description varchar(MAX) null,
 Picture image null
 
 );
@@ -86,7 +88,7 @@ Title nvarchar(30) null,
 TitleOfCourtesy nvarchar(25) null,
 BirthDate datetime null,
 HireDate datetime null,
-Address_ nvarchar(60) null,
+Address nvarchar(60) null,
 City nvarchar(15) null,
 Region nvarchar(25) null,
 PostalCode nvarchar(10) null,
@@ -118,7 +120,7 @@ CustomerID nchar(5) not null PRIMARY KEY,
 CompanyName nvarchar(40) not null,
 ContactName nvarchar(30) null,
 ContactTitle nvarchar(30) null,
-Address_ nvarchar(60) null,
+Address nvarchar(60) null,
 City nvarchar(15) null,
 Region nvarchar(15) null,
 PostalCode nvarchar(10) null,
@@ -167,6 +169,4 @@ Primary key(OrderID, ProductID)
 
 );
 
-select * from Categories;
-
-SELECT * FROM sys.tables WHERE schema_id = 1;
+select * from dbo.Categories;

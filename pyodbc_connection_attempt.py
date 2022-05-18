@@ -1,19 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 27 08:54:51 2021
-
-@author: arman
-"""
-#pip install pyodbc
-# Import the necessary modules
-# Import the config module
+import itertools
 import readconfig
 import pandas as pd
 import os
 import pyodbc
+import tqdm
 
 # Set the working directory to the location of scripts
-os.chdir("C:\AUA\Business Intelligence\Group Project 2")
+path = "C:\\Users\\Nitro\\Desktop\\BI group project\\BI_final_project"
+os.chdir(path)
 
 # Call to read the configuration file
 c_ER = readconfig.get_sql_config(r'SQL_Server_Config.cfg',"Database1")
@@ -26,7 +20,6 @@ conn_ER = pyodbc.connect(conn_info_ER)
 
 # Create a Cursor class instance for executing T-SQL statements
 cursor_ER = conn_ER.cursor()
-#%% Auxiliary functions
 
 # Extract the tables names of the database (excluding system tables)    
 def extract_tables_db(cursor, *args):
@@ -67,35 +60,24 @@ def populate_ER(db = 'proj2_db',src='data_source.xlsx'):
     """
     cursor_ER.execute(f'use {db}')
     data = pd.ExcelFile(src)
-    for sheet in data.sheet_names:
-        sheet_data = pd.read_excel(src,sheet_name=sheet)
-        for _,row in sheet_data.iterrows():
-            row_data = [f"'{str(col)}'" for col in row.to_list()]
-            cmd = f'insert into dbo.{sheet} values ({", ".join(row_data)})'
-            print(cmd)
-            cursor_ER.execute(cmd)
-    cursor_ER.commit()
-# populate_ER()
-cursor_ER.execute("SELECT * FROM sys.tables")
-print(cursor_ER.fetchall())
-# for row in cursor_ER.fetchall():
-# cursor_ER.execute("use dbo")
-# print(extract_tables_db(cursor_ER))
-# cursor_ER.execute('select * from Orders')
-#
-#
-#     # Dropping the proc if it exists and commiting the change
-#     cursor_dst.execute(sql_script_drop_proc)
-#     cursor_dst.commit()
-#
-#     return f'a
-#
-# #%% Testing the function
-# populate_dim_scd1(cursor_ER,cursor_DW, src_db = 'Orders_ER', src_table = 'brands',
-#                   dst_db = 'Orders_DW', dst_table = 'dim_production_brands_SCD1',
-#                   src_schema = 'production',dst_schema = 'dbo',
-#                   connect_col = 'brand_id')
-#
-# #%% Close the cursors and the connections
-# cursor_ER.close()
-# conn_ER.close()
+    sheet_names = data.sheet_names
+    all_sheet_combinations = list(itertools.permutations(sheet_names))
+    for sheet_order in tqdm.tqdm(all_sheet_combinations):
+        try:
+            for sheet in sheet_order:
+                sheet_data = pd.read_excel(src, sheet_name=sheet)
+                for _,row in sheet_data.iterrows():
+                    columns = row.index.to_list()
+                    row_data = [f"""'{str(col).replace("'","''")}'""" if ((not isinstance(col,(float,int)) or (str(col)=='nan'))) else f"{col}" for col in row.to_list()]
+                    cmd = f'insert into dbo.{sheet}({",".join(columns)}) values ({", ".join(row_data)})'
+                    cursor_ER.execute(cmd)
+            cursor_ER.commit()
+        except:
+            cursor_ER.rollback()
+            continue
+        break
+
+if __name__=='__main__':
+    populate_ER()
+    cursor_ER.close()
+    conn_ER.close()
