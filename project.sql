@@ -68,7 +68,7 @@ ProductID int PRIMARY KEY,
 ProductName nvarchar(40) null,
 SupplierID int not null REFERENCES Suppliers(SupplierID),
 CategoryID int not null REFERENCES Categories(categoryID),
-QuantityPerProduct nvarchar(20) not null,
+QuantityPerUnit nvarchar(20) not null,
 UnitPrice money not null,
 UnitsInStock smallint not null,
 UnitsOnOrder smallint not null,
@@ -97,11 +97,16 @@ HomePhone nvarchar(24) null,
 Extension nvarchar(4) null,
 Photo image null,
 Notes varchar(MAX) null,
-ReportsTo int null REFERENCES Employees(EmployeeID),
+ReportsTo int null,
 PhotoPath nvarchar(255) null
-
 );
 
+
+ALTER TABLE Employees
+   ADD CONSTRAINT reportsto 
+   FOREIGN KEY (ReportsTo)
+   REFERENCES Employees(EmployeeID)
+;
 
 DROP TABLE IF EXISTS EmployeeTerritories;
 create table EmployeeTerritories(
@@ -143,11 +148,11 @@ create table Orders(
 
 OrderID int not null PRIMARY KEY,
 CustomerID nchar(5) null REFERENCES Customers(CustomerID),
-EmployeedID int null REFERENCES Employees(EmployeeID),
+EmployeeID int null REFERENCES Employees(EmployeeID),
 OrderDate datetime null,
 RequiredDate datetime null,
 ShippedDate datetime null,
-ShipVisa int null REFERENCES Shippers(ShipperID),
+ShipVia int null REFERENCES Shippers(ShipperID),
 Freight money null,
 ShipName nvarchar(40) null,
 ShipAddress nvarchar(60) null,
@@ -168,5 +173,3 @@ Discount real not null,
 Primary key(OrderID, ProductID)
 
 );
-
-select * from dbo.Categories;
