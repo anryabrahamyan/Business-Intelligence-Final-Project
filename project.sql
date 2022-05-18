@@ -173,3 +173,6 @@ Discount real not null,
 Primary key(OrderID, ProductID)
 
 );
+
+
+select * from Employees;
