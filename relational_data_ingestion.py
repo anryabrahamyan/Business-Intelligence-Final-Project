@@ -70,6 +70,10 @@ def populate_ER(db='proj2_db', src='data_source.xlsx'):
             row_data = ['null' if (col in ['nan']) else col for col in row_data]
             row_data = ['null' if (col in ["'NaT'"]) else col for col in row_data]
             cmd = f'insert into dbo.{sheet}({",".join(columns)}) values ({", ".join(row_data)})'
+
+            with open('sql_inserts.sql','a') as file:
+                file.write(cmd+';')
+
             cursor_ER.execute(cmd)
     cursor_ER.execute("""
         ALTER TABLE Employees
