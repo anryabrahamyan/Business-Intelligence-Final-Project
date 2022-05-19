@@ -2,7 +2,7 @@ CREATE DATABASE proj2_db
 	ON (NAME = proj2_mdf,
 	FILENAME = 'C:\Users\Nitro\Desktop\BI group project\BI_final_project\proj2_mdf.mdf');
 
-use proj2_db
+use proj2_db;
 
 DROP TABLE IF EXISTS EmployeeTerritories;
 DROP TABLE IF EXISTS Territories;
@@ -173,3 +173,18 @@ Discount real not null,
 Primary key(OrderID, ProductID)
 
 );
+
+select Orders.OrderID,Customers.CustomerID,Employees.EmployeeID,OrderDate,RequiredDate,ShippedDate,ShipVia,Freight,ShipName,ShipAddress,ShipCity,ShipRegion,ShipPostalCode,ShipCountry,products.ProductID,products.UnitPrice,Quantity,Discount 
+from 
+Region
+INNER JOIN Territories ON Region.RegionID = Territories.RegionID
+INNER JOIN EmployeeTerritories ON Territories.TerritoryID = EmployeeTerritories.TerritoryID
+INNER JOIN Employees ON Employees.EmployeeID = EmployeeTerritories.EmployeeID
+INNER JOIN Orders ON Employees.EmployeeID = Orders.EmployeeID
+INNER JOIN Shippers ON Orders.ShipVia = Shippers.ShipperID
+INNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID
+INNER JOIN OrderDetails ON Orders.OrderID = OrderDetails.OrderID
+INNER JOIN Products ON OrderDetails.ProductID = Products.ProductID
+INNER JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID
+INNER JOIN Categories ON Products.CategoryID = Categories.CategoryID
+;

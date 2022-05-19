@@ -7,7 +7,6 @@ DROP TABLE IF EXISTS DimRegion;
 DROP TABLE IF EXISTS DimTerritories;
 DROP TABLE IF EXISTS BridgeEmployeeTerritories;
 DROP TABLE IF EXISTS DimEmployees;
-DROP TABLE IF EXISTS BridgeEmployeeTerritories;
 DROP TABLE IF EXISTS DimShippers;
 DROP TABLE IF EXISTS DimProducts;
 DROP TABLE IF EXISTS DimProducts_History;
@@ -29,15 +28,16 @@ create table DimRegion(
 );
 
 create table DimTerritories(
-
   TerritoryKey int not null,
   TerritoryID int IDENTITY(1,1)  PRIMARY KEY,
   TerritoryDescription nchar(50) not null,
-  RegionID int not null REFERENCES DimRegion(RegionID),
+  RegionID int not null,
   EffectiveDate datetime,
   IneffectiveDate datetime,
-  CurrentIndicator bit
-
+  CurrentIndicator bit,
+  CONSTRAINT region_id_fk FOREIGN KEY (RegionID) REFERENCES DimRegion(RegionID)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE
 );
 
 
@@ -70,10 +70,15 @@ create table DimEmployees(
 
 create table BridgeEmployeeTerritories(
 
-  EmployeeID int not null REFERENCES DimEmployees(EmployeeID),
-  TerritoryID int not null REFERENCES DimTerritories(TerritoryID),
-  CONSTRAINT PK_Person PRIMARY KEY (EmployeeID,TerritoryID)
-
+  EmployeeID int not null, 
+  TerritoryID int not null,
+  CONSTRAINT PK_Person PRIMARY KEY (EmployeeID,TerritoryID),
+  CONSTRAINT employee_id_fk FOREIGN KEY (EmployeeID) REFERENCES DimEmployees(EmployeeID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+  CONSTRAINT territory_id_fk FOREIGN KEY (TerritoryID) REFERENCES DimTerritories(TerritoryID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 
 );
 
@@ -134,8 +139,7 @@ create table DimProducts_History(
   SupplierCountry nvarchar(15),
   SupplierPostalCode nvarchar(15),
   ValidFrom datetime,
-  ValidTo datetime,
-  
+  ValidTo datetime
 );
 
 
@@ -160,7 +164,7 @@ create table DimCustomers(
 
 create table Date(
 
-  DateKey int IDENTITY(1,1) PRIMARY KEY,
+  DateKey int IDENTITY(1,1),
   Date datetime not null,
   Day int not null,
   Month int not null,
@@ -171,18 +175,18 @@ create table Date(
   WeekOfMonth int not null,
   DayOfMonth int not null,
   DayOfYear int not null
-
+  constraint datekey_pk primary key (DateKey)
 );
 
 create table FactOrders(
 
-  Order_SK int PRIMARY KEY,
+  Order_SK int PRIMARY KEY IDENTITY(1,1),
   OrderID int not null,
   CustomerKey int not null REFERENCES DimCustomers(CustomerKey),
   EmployeeKey int not null,
   OrderDateKey int not null REFERENCES Date(Datekey),
   RequiredDate int not null REFERENCES Date(Datekey),
-  ShippedDate int not null REFERENCES Date(Datekey),
+  ShippedDate int REFERENCES Date(Datekey), --not null
   ShipperKey int not null REFERENCES DimShippers(ShipperKey),
   Freight money,
   ShipName nvarchar(40),
@@ -195,8 +199,4 @@ create table FactOrders(
   UnitPrice money not null,
   Quantity smallint not null,
   Discount real not null,
-  
 );
-
-select * from Employees;
-select * from BridgeEmployeeTerritories;

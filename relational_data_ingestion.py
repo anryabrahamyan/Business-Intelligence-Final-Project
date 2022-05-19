@@ -62,7 +62,9 @@ def populate_ER(db='proj2_db', src='data_source.xlsx'):
     for sheet in ['Employees', 'Region', 'Territories', 'Suppliers', 'Categories', 'Products', 'EmployeeTerritories',
                   'Customers', 'Shippers', 'Orders', 'OrderDetails']:
         sheet_data = pd.read_excel(src, sheet_name=sheet)
+        i = 0
         for _, row in sheet_data.iterrows():
+            i+=1
             columns = row.index.to_list()
             row_data = [f"""'{str(col).replace("'", "''")}'""" if (
             (not isinstance(col, (float, int)) or (str(col) in ['True', 'False']))) else f"{col}" for col in
@@ -71,8 +73,9 @@ def populate_ER(db='proj2_db', src='data_source.xlsx'):
             row_data = ['null' if (col in ["'NaT'"]) else col for col in row_data]
             cmd = f'insert into dbo.{sheet}({",".join(columns)}) values ({", ".join(row_data)})'
 
-            with open('sql_inserts.sql','a') as file:
-                file.write(cmd+';')
+            if i<=15:
+                with open('sql_inserts.sql','a') as file:
+                    file.write(cmd+';')
 
             cursor_ER.execute(cmd)
     cursor_ER.execute("""
