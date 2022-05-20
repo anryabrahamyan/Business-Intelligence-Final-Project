@@ -200,3 +200,5 @@ create table FactOrders(
   Quantity smallint not null,
   Discount real not null,
 );
+
+

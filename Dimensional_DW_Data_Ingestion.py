@@ -471,6 +471,67 @@ def populate_dim_customers_etl(db='Orders_DIMENSIONAL_DW'):
     cursor_ER.close()
     conn_ER.close()
 
+def populate_dim_date_etl(db='Orders_DIMENSIONAL_DW'):
+    """
+    Populate The Date table from the Relational_Database
+    """
+    # Call to read the configuration file
+    c_ER = readconfig.get_sql_config(r'SQL_Server_Config.cfg', "Database2")
+    # Create a connection string for SQL Server
+    conn_info_ER = 'Driver={};Server={};Database={};Trusted_Connection={};'.format(*c_ER)
+    # Connect to the server and to the desired database
+    conn_ER = pyodbc.connect(conn_info_ER)
+    # Create a Cursor class instance for executing T-SQL statements
+    cursor_ER = conn_ER.cursor()
+
+    cursor_ER.execute(f"use {db}")
+    cursor_ER.execute(f'drop procedure if exists dbo.fill_dimdate;')
+    cursor_ER.execute(f'set identity_insert date on;')
+
+    cursor_ER.execute(
+        """
+        create procedure dbo.fill_dimdate (@start_date DATE,@end_date DATE)
+        as 
+        begin try
+        DECLARE @LoopDate datetime
+        SET @LoopDate = @start_date
+        
+        WHILE @LoopDate <= @end_date
+        BEGIN
+         -- add a record into the date dimension table for this date
+         INSERT INTO Date(datekey,date,day,Month,Quarter,Year,MonthName,WeekOfYear,WeekOfMonth,DayOfMonth,DayOfYear) VALUES (
+            Year(@LoopDate) * 10000 +  Month(@LoopDate) * 100 + Day(@LoopDate)
+            ,@LoopDate
+            ,Day(@LoopDate)
+            ,Month(@LoopDate),
+            CASE WHEN Month(@LoopDate) IN (1, 2, 3) THEN 1
+                WHEN Month(@LoopDate) IN (4, 5, 6) THEN 2
+                WHEN Month(@LoopDate) IN (7, 8, 9) THEN 3
+                WHEN Month(@LoopDate) IN (10, 11, 12) THEN 4 end, 
+            Year(@LoopDate),
+            Datename(m,@LoopDate),
+            DATEPART(week, @LoopDate),
+            (DATEPART(day,@LoopDate)-1)/7 + 1,
+            day(@LoopDate),
+            DATEPART (dayofyear , @LoopDate)
+        )
+         SET @LoopDate = DateAdd(d, 1, @LoopDate)
+         END
+        END TRY
+        BEGIN CATCH
+            THROW
+        END CATCH;
+
+                """
+    )
+    cursor_ER.execute(f"exec dbo.fill_dimdate @start_date='1950-01-01',@end_date='2022-05-20';")
+    cursor_ER.execute(f"set identity_insert date off;")
+
+
+    cursor_ER.commit()
+    cursor_ER.close()
+    conn_ER.close()
+
 
 if __name__ == '__main__':
     populate_dim_shippers_etl()
@@ -479,3 +540,4 @@ if __name__ == '__main__':
     populate_dim_territories_etl()
     populate_dim_customers_etl()
     populate_fact_orders_etl()
+    populate_dim_date_etl()
